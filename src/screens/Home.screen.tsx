@@ -7,19 +7,27 @@ import {
   View,
 } from 'react-native';
 import {gql, useQuery} from 'urql';
+import {
+  AllStoriesQuery,
+  AllStoriesQueryVariables,
+} from '../graphql/__generated__/operationTypes';
+import {StorySummaryFields} from '../graphql/fragments';
+import {Story} from '../components/Story';
 
 const STORIES_QUERY = gql`
   query AllStories {
     stories {
-      id
-      title
-      author
-      summary
+      ...StorySummaryFields
     }
   }
+  ${StorySummaryFields}
 `;
+
 export const HomeScreen: React.FC = () => {
-  const [{data, error, fetching}] = useQuery({query: STORIES_QUERY});
+  const [{data, error, fetching}] = useQuery<
+    AllStoriesQuery,
+    AllStoriesQueryVariables
+  >({query: STORIES_QUERY});
 
   if (fetching) {
     return (
@@ -42,15 +50,10 @@ export const HomeScreen: React.FC = () => {
       <FlatList
         style={styles.flatlist}
         contentContainerStyle={styles.flatlistContent}
-        data={data.stories}
+        data={data?.stories}
         ItemSeparatorComponent={() => <View style={styles.separator} />}
         keyExtractor={item => item.id}
-        renderItem={({item}) => (
-          <View>
-            <Text style={styles.title}>{item.title}</Text>
-            <Text style={styles.summary}>{item.summary}</Text>
-          </View>
-        )}
+        renderItem={({item}) => <Story item={item} />}
       />
     </View>
   );
